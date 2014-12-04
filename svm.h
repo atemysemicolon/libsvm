@@ -1,6 +1,6 @@
 #ifndef _LIBSVM_H
 #define _LIBSVM_H
-
+#define OPENMP 1
 #define LIBSVM_VERSION 320
 
 #ifdef __cplusplus
