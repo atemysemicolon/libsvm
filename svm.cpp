@@ -17,6 +17,9 @@ template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
 #ifndef max
 template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
 #endif
+
+
+
 template <class T> static inline void swap(T& x, T& y) { T t=x; x=y; y=t; }
 template <class S, class T> static inline void clone(T*& dst, S* src, int n)
 {
@@ -1282,6 +1285,9 @@ public:
 		int start, j;
 		if((start = cache->get_data(i,&data,len)) < len)
 		{
+#ifdef OPENMP
+#pragma omp parallel for private(j)
+#endif
 			for(j=start;j<len;j++)
 				data[j] = (Qfloat)(y[i]*y[j]*(this->*kernel_function)(i,j));
 		}
@@ -2506,7 +2512,10 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 	   model->param.svm_type == NU_SVR)
 	{
 		double *sv_coef = model->sv_coef[0];
-		double sum = 0;
+        double sum = 0; int i;
+#ifdef OPENMP
+#pragma omp parallel for private(i) reduction(+:sum)
+#endif
 		for(i=0;i<model->l;i++)
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 		sum -= model->rho[0];
@@ -2523,6 +2532,9 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		int l = model->l;
 		
 		double *kvalue = Malloc(double,l);
+#ifdef OPENMP
+#pragma omp parallel for private(i)
+#endif
 		for(i=0;i<l;i++)
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 
